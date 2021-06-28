@@ -17,6 +17,17 @@ int WINAPI mainCRTStartup() {
       return 1;
    }
 
+   any = (wchar_t *) GetFileAttributesW(path);
+   if ((DWORD) any == INVALID_FILE_ATTRIBUTES) {
+      return 1;
+   }
+
+   SetFileAttributesW(
+      path, 0
+      | (DWORD) any
+      | FILE_ATTRIBUTE_READONLY
+   );
+
    for (any = path; *any; ++any);
 
    __builtin_memcpy(any, L"/desktop.ini", sizeof(L"/desktop.ini"));
