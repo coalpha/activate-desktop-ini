@@ -4,7 +4,10 @@
 
 int WINAPI mainCRTStartup() {
    wchar_t *any;
-   wchar_t *path = CommandLineToArgvW(GetCommandLineW(), (int *) &any)[1];
+   register wchar_t *path = CommandLineToArgvW(
+      GetCommandLineW(),
+      (int *) &any
+   )[1];
 
    if ((int) any != 2) {
       WriteConsoleW(
