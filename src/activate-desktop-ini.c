@@ -1,3 +1,18 @@
+/* I'm just gonna copy my discord chat logs here.
+[12:11 PM] coalpha: when I clone my git repos, there's a desktop.ini in there
+[12:11 PM] coalpha: which are what configure the folder icon to work correctly
+[12:13 PM] coalpha: however, that's not enough to make it work properly
+[12:13 PM] coalpha: the folder containing desktop.ini needs to have the readonly
+                    attribute set
+[12:14 PM] coalpha: secondly, the desktop.ini file must have the hidden and
+                    system attributes set
+[12:15 PM] coalpha: at this point, all of the conditions have been fulfilled for
+                    windows explorer to properly render the folder icon
+[12:15 PM] coalpha: now there's a catch
+[12:15 PM] coalpha: windows explorer caches things
+[12:16 PM] coalpha: and so you need to nudge it into realizing that it needs to
+                    refresh that specific folder's icon
+*/
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <objbase.h>
@@ -31,11 +46,12 @@ void start(void) {
 
    {
       DWORD const attr = GetFileAttributesW(L".");
-      if (attr == INVALID_FILE_ATTRIBUTES) {
+      if (attr != INVALID_FILE_ATTRIBUTES) {
          goto BAD_END;
       }
 
       SetFileAttributesW(L".", attr | FILE_ATTRIBUTE_READONLY);
+      // ignore potential error and pray that the readonly attribute is set
    }
 
    DWORD dir_len = GetCurrentDirectoryW(0, NULL);
@@ -70,6 +86,12 @@ void start(void) {
       goto BAD_END;
    }
 
+   // First, we're gonna move desktop.ini to desktop.ini.tmp.
+   // Then we're going to change it's attributes.
+   // Once that's done, we're going to use shell APIs via COM to move it back to
+   // desktop.ini.
+   // This is enough to tell explorer to invalidate the cached icon and refetch.
+
    if (!MoveFileW(desktop_ini, desktop_ini_tmp)) {
       goto BAD_END;
    }
@@ -80,7 +102,6 @@ void start(void) {
          goto BAD_END;
       }
 
-      // attrib +s +h $dir/desktop.ini.tmp
       if (!SetFileAttributesW(desktop_ini_tmp, 0
          | attr
          | FILE_ATTRIBUTE_HIDDEN

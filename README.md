@@ -13,17 +13,5 @@ Alternatively:
 
 ```shell
 $ git clone https://github.com/coalpha/repo cloned-repo
-$ activate_desktop_ini cloned-repo
+$ activate-desktop-ini cloned-repo
 ```
-
-## how to build
-
-Requirements:
-
-- Windows
-- GNU Make
-- NodeJS (for Makefile copy)
-- clang
-- Windows 10 SDK
-
-2. `make`

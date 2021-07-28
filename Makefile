@@ -24,11 +24,8 @@ cflags += -Xlinker "/libpath:C:\Program Files (x86)\Windows Kits\10\Lib\10.0.190
 
 rcedit := "misc/rcedit/rcedit-x64.exe"
 
-all: bin/$n.tiny.exe bin/$n.exe
+build: clean bin/$n.tiny.exe bin/$n.exe
 	-
-
-bin:
-	mkdir bin
 
 bin/$n.tiny.exe: src/$n.c bin Makefile
 	clang $< $(cflags) -o $@
@@ -37,4 +34,10 @@ bin/$n.exe: bin/$n.tiny.exe
 	./misc/cp.exe $< $@
 	$(rcedit) $@ --set-icon misc/icon.ico
 
-.PHONY: all
+clean:
+	-rd /s /q bin
+
+bin:
+	mkdir bin
+
+.PHONY: build clean bin
