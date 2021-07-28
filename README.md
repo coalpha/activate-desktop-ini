@@ -1,9 +1,9 @@
 # activate_desktop_ini
 
-<img src="res/icon.png" width=128px/>
+<img src="misc/icon.png" width=128px/>
 
 Cloned repos don't show my nice folder icons?
-Download `activate_desktop_ini.exe` and drag the folder onto it
+Download `activate_desktop_ini.exe` and drag the folder onto it.
 
 ## usage
 
@@ -18,9 +18,12 @@ $ activate_desktop_ini cloned-repo
 
 ## how to build
 
-1. Install
-   - Windows
-   - GNU Make
-   - clang
-   - Microsoft.VisualStudio.Component.VC.Tools.x86.x64
+Requirements:
+
+- Windows
+- GNU Make
+- NodeJS (for Makefile copy)
+- clang
+- Windows 10 SDK
+
 2. `make`
