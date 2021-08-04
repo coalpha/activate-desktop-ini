@@ -3,7 +3,7 @@
 <img src="misc/icon.png" width=128px/>
 
 Cloned repos don't show my nice folder icons?
-Download `activate_desktop_ini.exe` and drag the folder onto it.
+Download `activate-desktop-ini.exe` and drag the folder onto it.
 
 ## usage
 
