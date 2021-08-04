@@ -7,6 +7,8 @@ else
 	cflags += -Ofast
 endif
 
+libpath := $(shell misc/winsdk.exe --type:lib --arch:x64 --kit:um)
+
 cflags += -nostdlib
 cflags += -ffreestanding
 cflags += -fno-stack-check
@@ -20,7 +22,7 @@ cflags += -luuid
 cflags += -Xlinker /entry:start
 cflags += -Xlinker /nodefaultlib
 cflags += -Xlinker /subsystem:console
-cflags += -Xlinker "/libpath:C:\Program Files (x86)\Windows Kits\10\Lib\10.0.19041.0\um\x64"
+cflags += -Xlinker /libpath:"$(libpath)"
 
 rcedit := "misc/rcedit/rcedit-x64.exe"
 
@@ -29,6 +31,9 @@ build: clean bin/$n.tiny.exe bin/$n.exe
 
 bin/$n.tiny.exe: src/$n.c bin Makefile
 	clang $< $(cflags) -o $@
+ifeq ($(mode), release)
+	llvm-strip $@
+endif
 
 bin/$n.exe: bin/$n.tiny.exe
 	./misc/cp.exe $< $@

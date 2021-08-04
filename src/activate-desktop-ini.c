@@ -20,70 +20,65 @@
 #include <shellapi.h>
 
 #define DWORD_PTR *(DWORD *)
+#define QWORD unsigned long long
 #define QWORD_PTR *(unsigned long long *)
 
 void start(void) {
    {
       int argc;
-      PCWSTR dir = CommandLineToArgvW(GetCommandLineW(), &argc)[1];
+      wchar_t const *const restrict dir =
+         CommandLineToArgvW(GetCommandLineW(), &argc)[1];
 
       if (argc != 2) {
          #define usage L"activate_desktop_ini.exe directory\n"
          WriteConsoleW(
             GetStdHandle(STD_OUTPUT_HANDLE),
             usage,
-            sizeof(usage) / sizeof(WCHAR),
+            sizeof(usage) / sizeof(WCHAR) - 1,
             NULL,
             NULL
          );
-         goto BAD_END;
+         goto BAD_END_WINDOWS;
       }
 
       if (!SetCurrentDirectoryW(dir)) {
-         goto BAD_END;
+         goto BAD_END_WINDOWS;
       }
    }
 
    {
       DWORD const attr = GetFileAttributesW(L".");
-      if (attr != INVALID_FILE_ATTRIBUTES) {
-         goto BAD_END;
+      if (attr == INVALID_FILE_ATTRIBUTES) {
+         goto BAD_END_WINDOWS;
       }
 
-      SetFileAttributesW(L".", attr | FILE_ATTRIBUTE_READONLY);
-      // ignore potential error and pray that the readonly attribute is set
+      if (!SetFileAttributesW(L".", attr | FILE_ATTRIBUTE_READONLY)) {
+         goto BAD_END_WINDOWS;
+      }
    }
 
    DWORD dir_len = GetCurrentDirectoryW(0, NULL);
-   PWSTR dir = _alloca(dir_len * sizeof(WCHAR));
+   wchar_t *const restrict dir =
+      __builtin_alloca(dir_len * sizeof(wchar_t));
+   if (dir == NULL) {
+      goto BAD_END_WINDOWS;
+   }
+
    if (!GetCurrentDirectoryW(dir_len, dir)) {
-      goto BAD_END;
+      goto BAD_END_WINDOWS;
    }
 
-   DWORD desktop_ini_len = GetFullPathNameW(L"desktop.ini", 0, NULL, NULL);
-   PWSTR desktop_ini = _alloca(desktop_ini_len * sizeof(WCHAR));
-   if (
-      !GetFullPathNameW(
-         L"desktop.ini",
-         desktop_ini_len,
-         desktop_ini,
-         NULL
-      )
-   ) {
-      goto BAD_END;
+   DWORD const desktop_ini_len = GetFullPathNameW(L"desktop.ini", 0, NULL, NULL);
+   wchar_t *const restrict desktop_ini = __builtin_alloca(desktop_ini_len * sizeof(wchar_t));
+   if (!GetFullPathNameW(L"desktop.ini", desktop_ini_len, desktop_ini, NULL)) {
+      goto BAD_END_WINDOWS;
    }
 
-   DWORD desktop_ini_tmp_len = GetFullPathNameW(L"desktop.ini.tmp", 0, NULL, NULL);
-   PWSTR desktop_ini_tmp = _alloca(desktop_ini_tmp_len * sizeof(WCHAR));
-   if (
-      !GetFullPathNameW(
-         L"desktop.ini.tmp",
-         desktop_ini_tmp_len,
-         desktop_ini_tmp,
-         NULL
-      )
-   ) {
-      goto BAD_END;
+   #define mDesktopTmp L"desktop.ini.tmp"
+   DWORD desktop_ini_tmp_len = GetFullPathNameW(mDesktopTmp, 0, NULL, NULL);
+   wchar_t *const restrict desktop_ini_tmp = __builtin_alloca(desktop_ini_tmp_len * sizeof(WCHAR));
+   if (!GetFullPathNameW(mDesktopTmp, desktop_ini_tmp_len, desktop_ini_tmp, NULL)) {
+      goto BAD_END_WINDOWS;
    }
 
    // First, we're gonna move desktop.ini to desktop.ini.tmp.
@@ -93,13 +88,13 @@ void start(void) {
    // This is enough to tell explorer to invalidate the cached icon and refetch.
 
    if (!MoveFileW(desktop_ini, desktop_ini_tmp)) {
-      goto BAD_END;
+      goto BAD_END_WINDOWS;
    }
 
    {
       DWORD const attr = GetFileAttributesW(desktop_ini_tmp);
       if (attr == INVALID_FILE_ATTRIBUTES) {
-         goto BAD_END;
+         goto BAD_END_WINDOWS;
       }
 
       if (!SetFileAttributesW(desktop_ini_tmp, 0
@@ -107,7 +102,7 @@ void start(void) {
          | FILE_ATTRIBUTE_HIDDEN
          | FILE_ATTRIBUTE_SYSTEM
       )) {
-         goto BAD_END;
+         goto BAD_END_WINDOWS;
       }
    }
 
@@ -122,7 +117,7 @@ void start(void) {
       }
    }
 
-   IFileOperation *file_op;
+   IFileOperation *const restrict file_op;
    {
       HRESULT const res = CoCreateInstance(
          &CLSID_FileOperation,
@@ -145,7 +140,7 @@ void start(void) {
       }
    }
 
-   IShellItem *shFrom;
+   IShellItem *const restrict shFrom;
    {
       HRESULT const res = SHCreateItemFromParsingName(
          desktop_ini_tmp,
@@ -159,7 +154,7 @@ void start(void) {
       }
    }
 
-   IShellItem *shTo;
+   IShellItem *const restrict shTo;
    {
       HRESULT const res = SHCreateItemFromParsingName(
          dir,
@@ -204,7 +199,7 @@ void start(void) {
    ExitProcess(0);
    __builtin_unreachable();
 
-   BAD_END:
+   BAD_END_WINDOWS:
    ExitProcess(GetLastError());
    __builtin_unreachable();
 }
