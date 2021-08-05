@@ -1,4 +1,4 @@
-# activate_desktop_ini
+# activate-desktop-ini
 
 <img src="misc/icon.png" width=128px/>
 

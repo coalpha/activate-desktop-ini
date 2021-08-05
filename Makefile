@@ -3,7 +3,9 @@ n := activate-desktop-ini
 mode := release
 ifeq ($(mode), debug)
 	cflags += -g
-else
+endif
+
+ifeq ($(mode), release)
 	cflags += -Ofast
 endif
 

@@ -21,7 +21,7 @@
 
 #define DWORD_PTR *(DWORD *)
 #define QWORD unsigned long long
-#define QWORD_PTR *(unsigned long long *)
+#define QWORD_PTR *(QWORD *)
 
 void start(void) {
    {
@@ -30,7 +30,7 @@ void start(void) {
          CommandLineToArgvW(GetCommandLineW(), &argc)[1];
 
       if (argc != 2) {
-         #define usage L"activate_desktop_ini.exe directory\n"
+         #define usage L"activate-desktop-ini.exe directory\n"
          WriteConsoleW(
             GetStdHandle(STD_OUTPUT_HANDLE),
             usage,
@@ -68,9 +68,10 @@ void start(void) {
       goto BAD_END_WINDOWS;
    }
 
-   DWORD const desktop_ini_len = GetFullPathNameW(L"desktop.ini", 0, NULL, NULL);
+   #define mDesktop L"desktop.ini"
+   DWORD const desktop_ini_len = GetFullPathNameW(mDesktop, 0, NULL, NULL);
    wchar_t *const restrict desktop_ini = __builtin_alloca(desktop_ini_len * sizeof(wchar_t));
-   if (!GetFullPathNameW(L"desktop.ini", desktop_ini_len, desktop_ini, NULL)) {
+   if (!GetFullPathNameW(mDesktop, desktop_ini_len, desktop_ini, NULL)) {
       goto BAD_END_WINDOWS;
    }
 
@@ -173,7 +174,7 @@ void start(void) {
          file_op,
          shFrom,
          shTo,
-         L"desktop.ini",
+         mDesktop,
          NULL
       );
       if (res < 0) {
