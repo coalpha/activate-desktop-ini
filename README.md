@@ -40,7 +40,8 @@ actually update the icon.
 3. Use Shell APIs to move `desktop.ini.temp` to `desktop.ini`
 
 The directory will display the default icon and can be coaxed into displaying
-the correct one on refresh/f5.
+the correct one on refresh/f5. This works 95% of the time, unlike the below
+methods.
 
 ### SHChangeNotify
 
